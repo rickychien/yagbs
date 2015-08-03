@@ -30,6 +30,8 @@ parser.addArgument(['--cache'], {
 });
 
 function isCacheModified(cachePath, config) {
+  if (!fs.existsSync(cachePath)) return false;
+
   let data = fs.readFileSync(cachePath, { encoding: 'utf-8' });
   let cache = JSON.parse(data);
   return JSON.stringify(cache) !== JSON.stringify(config);

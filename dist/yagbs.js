@@ -48,6 +48,8 @@ parser.addArgument(['--cache'], {
 });
 
 function isCacheModified(cachePath, config) {
+  if (!_fs2['default'].existsSync(cachePath)) return false;
+
   var data = _fs2['default'].readFileSync(cachePath, { encoding: 'utf-8' });
   var cache = JSON.parse(data);
   return JSON.stringify(cache) !== JSON.stringify(config);
