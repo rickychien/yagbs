@@ -1,0 +1,32 @@
+{
+  "name": "yagbs",
+  "version": "0.0.1",
+  "author": "Ricky Chien <ricky060709@gmail.com>",
+  "description": "Yet another gaia build system",
+  "license": "MIT",
+  "bin": {
+    "yagbs": "./bin/yagbs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rickychien/yagbs.git"
+  },
+  "engines": {
+    "node": ">=0.12",
+    "npm": ">=2"
+  },
+  "readme": "README.md",
+  "devDependencies": {
+    "babel": "^5.8.3",
+    "mocha": "^2.2.5"
+  },
+  "scripts": {
+    "prepublish": "mkdir -p dist && ./node_modules/.bin/babel src --out-dir dist",
+    "test": "./node_modules/.bin/mocha"
+  },
+  "dependencies": {
+    "argparse": "^1.0.2",
+    "cfg-manager": "^1.0.0",
+    "confidant": "^0.4.0"
+  }
+}
