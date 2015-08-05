@@ -43,8 +43,11 @@ export default function main(args = parser.parseArgs()) {
   let cfg = new CfgManger();
   let configPath = `${args.config}/build-config.json`;
 
-  // Merge build-config with envrionment varialbes
-  cfg.file(configPath).env();
+  // Merge build-config with envrionment varialbes if it exists
+  if (fs.existsSync(configPath)) {
+    cfg.file(configPath);
+  }
+  cfg.env();
   let config = cfg._config;
 
   let cachePath = `${args.cache}/build-config-cache.json`;

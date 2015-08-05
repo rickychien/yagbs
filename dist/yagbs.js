@@ -11,6 +11,10 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
+var _child_process = require('child_process');
+
+var _child_process2 = _interopRequireDefault(_child_process);
+
 var _confidant = require('confidant');
 
 var _confidant2 = _interopRequireDefault(_confidant);
@@ -47,8 +51,8 @@ parser.addArgument(['--cache'], {
   defaultValue: CWD_PATH
 });
 
-function isCacheModified(cachePath, config) {
-  if (!_fs2['default'].existsSync(cachePath)) return false;
+function hasNewerConfig(cachePath, config) {
+  if (!_fs2['default'].existsSync(cachePath)) return true;
 
   var data = _fs2['default'].readFileSync(cachePath, { encoding: 'utf-8' });
   var cache = JSON.parse(data);
@@ -58,25 +62,40 @@ function isCacheModified(cachePath, config) {
 function main() {
   var args = arguments.length <= 0 || arguments[0] === undefined ? parser.parseArgs() : arguments[0];
 
+  var dir = args.dir;
   var cfg = new _cfgManager2['default']();
-  var configPath = args.config + '/test/build-config.json';
+  var configPath = args.config + '/build-config.json';
 
-  // Merge build-config with envrionment varialbes
-  cfg.file(configPath).env();
+  // Merge build-config with envrionment varialbes if it exists
+  if (_fs2['default'].existsSync(configPath)) {
+    cfg.file(configPath);
+  }
+  cfg.env();
   var config = cfg._config;
 
   var cachePath = args.cache + '/build-config-cache.json';
   var configString = JSON.stringify(config, null, 2);
 
-  if (isCacheModified(cachePath, config)) {
-    console.log('Execute confidant...');
+  if (hasNewerConfig(cachePath, config)) {
+    console.log('Configuring...');
     (0, _confidant2['default'])({
-      dir: args.dir,
+      dir: dir,
       exclude: 'bower_components,node_modules'
+    });
+  } else {
+    console.log('No operations need to perform configuring.');
+  }
+
+  if (_fs2['default'].existsSync(dir + '/build.ninja')) {
+    console.log('Building with Ninja...');
+    _child_process2['default'].exec('ninja', { cwd: dir }, function (err, stdout, stderr) {
+      if (err) throw err;
     });
   }
 
   _fs2['default'].writeFileSync(cachePath, configString);
+
+  return true;
 }
 
 module.exports = exports['default'];
