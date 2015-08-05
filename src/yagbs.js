@@ -1,4 +1,5 @@
 import fs from 'fs';
+import child_process from 'child_process';
 import confidant from 'confidant';
 import CfgManger from 'cfg-manager';
 import { ArgumentParser } from 'argparse';
@@ -29,8 +30,8 @@ parser.addArgument(['--cache'], {
   defaultValue: CWD_PATH
 });
 
-function isCacheModified(cachePath, config) {
-  if (!fs.existsSync(cachePath)) return false;
+function hasNewerConfig(cachePath, config) {
+  if (!fs.existsSync(cachePath)) return true;
 
   let data = fs.readFileSync(cachePath, { encoding: 'utf-8' });
   let cache = JSON.parse(data);
@@ -38,8 +39,9 @@ function isCacheModified(cachePath, config) {
 }
 
 export default function main(args = parser.parseArgs()) {
+  let dir = args.dir;
   let cfg = new CfgManger();
-  let configPath = `${args.config}/test/build-config.json`;
+  let configPath = `${args.config}/build-config.json`;
 
   // Merge build-config with envrionment varialbes
   cfg.file(configPath).env();
@@ -48,13 +50,24 @@ export default function main(args = parser.parseArgs()) {
   let cachePath = `${args.cache}/build-config-cache.json`;
   let configString = JSON.stringify(config, null, 2);
 
-  if (isCacheModified(cachePath, config)) {
-    console.log('Execute confidant...');
+  if (hasNewerConfig(cachePath, config)) {
+    console.log('Configuring...');
     confidant({
-      dir: args.dir,
+      dir: dir,
       exclude: 'bower_components,node_modules'
+    });
+  } else {
+    console.log('No operations need to perform configuring.');
+  }
+
+  if (fs.existsSync(`${dir}/build.ninja`)) {
+    console.log('Building with Ninja...');
+    child_process.exec('ninja', { cwd: dir }, (err, stdout, stderr) => {
+      if (err) throw err;
     });
   }
 
   fs.writeFileSync(cachePath, configString);
+
+  return true;
 }

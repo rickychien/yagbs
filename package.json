@@ -18,7 +18,8 @@
   "readme": "README.md",
   "devDependencies": {
     "babel": "^5.8.3",
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "rimraf": "^2.4.2"
   },
   "scripts": {
     "prepublish": "mkdir -p dist && ./node_modules/.bin/babel src --out-dir dist",
