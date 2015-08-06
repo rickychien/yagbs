@@ -1,3 +1,5 @@
+var exec = require('child_process').execSync;
+
 module.exports = [
   {
     inputs: ['file.txt'],

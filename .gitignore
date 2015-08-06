@@ -32,3 +32,4 @@ build-config-cache.json
 build.ninja
 .ninja_deps
 .ninja_log
+file-copy.txt

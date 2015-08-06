@@ -1,8 +1,8 @@
 import fs from 'fs';
-import child_process from 'child_process';
 import confidant from 'confidant';
 import CfgManger from 'cfg-manager';
 import { ArgumentParser } from 'argparse';
+import { exec } from 'child-process-promise';
 
 let CWD_PATH = process.cwd();
 
@@ -37,6 +37,28 @@ function hasNewerConfig(cachePath, mergedConfig) {
   return JSON.stringify(cache) !== JSON.stringify(mergedConfig);
 }
 
+function building(dir) {
+  return new Promise((resolve, reject) => {
+    exec('ninja', { cwd: dir })
+    .then(result => {
+      resolve();
+    })
+    .fail(err => {
+      console.error(err);
+      reject(err);
+    });
+  });
+}
+
+function caching(cachePath, cache) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(cachePath, cache, err => {
+      if (err) reject(err);
+      resolve(cache);
+    });
+  });
+}
+
 export default function main(args = parser.parseArgs()) {
   let dir = args.dir;
   let exclude = args.exclude;
@@ -59,24 +81,8 @@ export default function main(args = parser.parseArgs()) {
 
   let mergedConfig = cfg._config;
 
-  if (hasNewerConfig(cachePath, mergedConfig)) {
-    console.log('Configuring...');
-    confidant({
-      dir: dir,
-      exclude: exclude
-    });
-  } else {
-    console.log('No operations need to perform for configuring.');
-  }
-
-  if (fs.existsSync(`${dir}/build.ninja`)) {
-    console.log('Building with Ninja...');
-    child_process.exec('ninja', { cwd: dir }, (err, stdout, stderr) => {
-      if (err) throw err;
-    });
-  }
-
-  fs.writeFileSync(cachePath, JSON.stringify(cfg._config, null, 2));
-
-  return true;
+  return (hasNewerConfig(cachePath, mergedConfig) ?
+    confidant({ dir: dir, exclude: exclude }) : Promise.resolve())
+    .then(() => building(dir))
+    .then(() => caching(cachePath, JSON.stringify(mergedConfig, null, 2)));
 }

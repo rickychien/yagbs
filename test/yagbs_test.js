@@ -1,7 +1,6 @@
 import assert from 'assert';
 import fs from 'fs';
 import rimraf from 'rimraf';
-import helper from './lib/helper';
 import yagbs from '../src/yagbs';
 
 suite('Yagbs', () => {
@@ -19,36 +18,44 @@ suite('Yagbs', () => {
     exclude: 'bower_components,node_modules',
     config: FIXTURES_DIR
   };
-  let hook;
-
-  setup(() => {
-    hook = helper.captureStream(process.stdout);
-  });
 
   teardown(() => {
-    hook.unhook();
     removes.forEach(file => rimraf.sync(file));
   });
 
-  test('#Execute yagbs once', () => {
-    yagbs(options);
-    assert.ok(fs.existsSync(`${FIXTURES_DIR}/build-config-cache.json`));
-    assert.equal(hook.captured(),
-`Configuring...
-Building with Ninja...
-`);
+  test('#Execute yagbs once', done => {
+    yagbs(options)
+      .then(() => {
+        assert.ok(fs.existsSync(`${FIXTURES_DIR}/build-config-cache.json`),
+          'build-config-cache.json should exist');
+        assert.ok(fs.existsSync(`${FIXTURES_DIR}/build.ninja`),
+          'build.ninja should exist');
+        assert.ok(fs.existsSync(`${FIXTURES_DIR}/file-copy.txt`),
+          'file-copy should exist');
+        done();
+      });
   });
 
-  test('#Execute yagbs twice', () => {
-    yagbs(options);
-    yagbs(options);
-    assert.ok(fs.existsSync(`${FIXTURES_DIR}/build-config-cache.json`));
-    assert.equal(hook.captured(),
-`Configuring...
-Building with Ninja...
-No operations need to perform for configuring.
-Building with Ninja...
-`);
+  test('#Execute yagbs twice', done => {
+    let mtime;
+
+    yagbs(options)
+      .then(() => {
+        mtime = fs.statSync(`${FIXTURES_DIR}/build.ninja`).mtime.getTime();
+        return yagbs(options);
+      })
+      .then(() => {
+        assert.ok(fs.existsSync(`${FIXTURES_DIR}/build-config-cache.json`),
+          'build-config-cache.json should exist');
+        assert.ok(fs.existsSync(`${FIXTURES_DIR}/build.ninja`),
+          'build.ninja should exist');
+        assert.ok(fs.existsSync(`${FIXTURES_DIR}/file-copy.txt`),
+          'file-copy should exist');
+        assert.equal(fs.statSync(`${FIXTURES_DIR}/build.ninja`).mtime.getTime(),
+          mtime,
+          'build.ninja should not be modified');
+        done();
+      });
   });
 
 });

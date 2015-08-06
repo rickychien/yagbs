@@ -11,10 +11,6 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _child_process = require('child_process');
-
-var _child_process2 = _interopRequireDefault(_child_process);
-
 var _confidant = require('confidant');
 
 var _confidant2 = _interopRequireDefault(_confidant);
@@ -24,6 +20,8 @@ var _cfgManager = require('cfg-manager');
 var _cfgManager2 = _interopRequireDefault(_cfgManager);
 
 var _argparse = require('argparse');
+
+var _childProcessPromise = require('child-process-promise');
 
 var CWD_PATH = process.cwd();
 
@@ -58,6 +56,26 @@ function hasNewerConfig(cachePath, mergedConfig) {
   return JSON.stringify(cache) !== JSON.stringify(mergedConfig);
 }
 
+function building(dir) {
+  return new Promise(function (resolve, reject) {
+    (0, _childProcessPromise.exec)('ninja', { cwd: dir }).then(function (result) {
+      resolve();
+    }).fail(function (err) {
+      console.error(err);
+      reject(err);
+    });
+  });
+}
+
+function caching(cachePath, cache) {
+  return new Promise(function (resolve, reject) {
+    _fs2['default'].writeFile(cachePath, cache, function (err) {
+      if (err) reject(err);
+      resolve(cache);
+    });
+  });
+}
+
 function main() {
   var args = arguments.length <= 0 || arguments[0] === undefined ? parser.parseArgs() : arguments[0];
 
@@ -81,26 +99,11 @@ function main() {
 
   var mergedConfig = cfg._config;
 
-  if (hasNewerConfig(cachePath, mergedConfig)) {
-    console.log('Configuring...');
-    (0, _confidant2['default'])({
-      dir: dir,
-      exclude: exclude
-    });
-  } else {
-    console.log('No operations need to perform for configuring.');
-  }
-
-  if (_fs2['default'].existsSync(dir + '/build.ninja')) {
-    console.log('Building with Ninja...');
-    _child_process2['default'].exec('ninja', { cwd: dir }, function (err, stdout, stderr) {
-      if (err) throw err;
-    });
-  }
-
-  _fs2['default'].writeFileSync(cachePath, JSON.stringify(cfg._config, null, 2));
-
-  return true;
+  return (hasNewerConfig(cachePath, mergedConfig) ? (0, _confidant2['default'])({ dir: dir, exclude: exclude }) : Promise.resolve()).then(function () {
+    return building(dir);
+  }).then(function () {
+    return caching(cachePath, JSON.stringify(mergedConfig, null, 2));
+  });
 }
 
 module.exports = exports['default'];
