@@ -50,7 +50,12 @@ export default function main(args = parser.parseArgs()) {
     cfg.file(configPath);
   }
 
-  cfg.env();
+  cfg.env()
+    .config({
+      ARGUMENT_DIR: dir,
+      ARGUMENT_EXCLUDE: exclude,
+      ARGUMENT_CONFIG: config
+    });
 
   let mergedConfig = cfg._config;
 

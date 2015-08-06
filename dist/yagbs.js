@@ -73,7 +73,11 @@ function main() {
     cfg.file(configPath);
   }
 
-  cfg.env();
+  cfg.env().config({
+    ARGUMENT_DIR: dir,
+    ARGUMENT_EXCLUDE: exclude,
+    ARGUMENT_CONFIG: config
+  });
 
   var mergedConfig = cfg._config;
 

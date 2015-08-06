@@ -16,6 +16,7 @@ suite('Yagbs', () => {
   ];
   let options = {
     dir: FIXTURES_DIR,
+    exclude: 'bower_components,node_modules',
     config: FIXTURES_DIR
   };
   let hook;
