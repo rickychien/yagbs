@@ -16,6 +16,11 @@
     "npm": ">=2"
   },
   "readme": "README.md",
+  "dependencies": {
+    "argparse": "^1.0.2",
+    "cfg-manager": "^1.0.0",
+    "confidant": "^0.4.0"
+  },
   "devDependencies": {
     "babel": "^5.8.3",
     "mocha": "^2.2.5",
@@ -23,11 +28,7 @@
   },
   "scripts": {
     "prepublish": "mkdir -p dist && ./node_modules/.bin/babel src --out-dir dist",
-    "test": "./node_modules/.bin/mocha"
-  },
-  "dependencies": {
-    "argparse": "^1.0.2",
-    "cfg-manager": "^1.0.0",
-    "confidant": "^0.4.0"
+    "test": "./node_modules/.bin/mocha",
+    "clean": "rm -f build.ninja .ninja_* *-cache.json"
   }
 }

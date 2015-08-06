@@ -39,51 +39,52 @@ parser.addArgument(['--dir'], {
   defaultValue: CWD_PATH
 });
 
+parser.addArgument(['--exclude'], {
+  help: 'Optional comma separated list of directories to omit from fs scan',
+  type: 'string',
+  defaultValue: 'bower_components,node_modules'
+});
+
 parser.addArgument(['--config'], {
-  help: 'Where to search for configure.js build files',
+  help: 'Where to search for build-config.json and build-config-cache.json',
   type: 'string',
   defaultValue: CWD_PATH
 });
 
-parser.addArgument(['--cache'], {
-  help: 'Path to store',
-  type: 'string',
-  defaultValue: CWD_PATH
-});
-
-function hasNewerConfig(cachePath, config) {
+function hasNewerConfig(cachePath, mergedConfig) {
   if (!_fs2['default'].existsSync(cachePath)) return true;
 
-  var data = _fs2['default'].readFileSync(cachePath, { encoding: 'utf-8' });
-  var cache = JSON.parse(data);
-  return JSON.stringify(cache) !== JSON.stringify(config);
+  var cache = JSON.parse(_fs2['default'].readFileSync(cachePath, { encoding: 'utf-8' }));
+  return JSON.stringify(cache) !== JSON.stringify(mergedConfig);
 }
 
 function main() {
   var args = arguments.length <= 0 || arguments[0] === undefined ? parser.parseArgs() : arguments[0];
 
   var dir = args.dir;
+  var exclude = args.exclude;
+  var config = args.config;
   var cfg = new _cfgManager2['default']();
-  var configPath = args.config + '/build-config.json';
+  var configPath = config + '/build-config.json';
+  var cachePath = config + '/build-config-cache.json';
 
   // Merge build-config with envrionment varialbes if it exists
   if (_fs2['default'].existsSync(configPath)) {
     cfg.file(configPath);
   }
+
   cfg.env();
-  var config = cfg._config;
 
-  var cachePath = args.cache + '/build-config-cache.json';
-  var configString = JSON.stringify(config, null, 2);
+  var mergedConfig = cfg._config;
 
-  if (hasNewerConfig(cachePath, config)) {
+  if (hasNewerConfig(cachePath, mergedConfig)) {
     console.log('Configuring...');
     (0, _confidant2['default'])({
       dir: dir,
-      exclude: 'bower_components,node_modules'
+      exclude: exclude
     });
   } else {
-    console.log('No operations need to perform configuring.');
+    console.log('No operations need to perform for configuring.');
   }
 
   if (_fs2['default'].existsSync(dir + '/build.ninja')) {
@@ -93,7 +94,7 @@ function main() {
     });
   }
 
-  _fs2['default'].writeFileSync(cachePath, configString);
+  _fs2['default'].writeFileSync(cachePath, JSON.stringify(cfg._config, null, 2));
 
   return true;
 }

@@ -16,18 +16,17 @@ suite('Yagbs', () => {
   ];
   let options = {
     dir: FIXTURES_DIR,
-    config: FIXTURES_DIR,
-    cache: FIXTURES_DIR
+    config: FIXTURES_DIR
   };
   let hook;
 
   setup(() => {
-    removes.forEach(file => rimraf.sync(file));
     hook = helper.captureStream(process.stdout);
   });
 
   teardown(() => {
     hook.unhook();
+    removes.forEach(file => rimraf.sync(file));
   });
 
   test('#Execute yagbs once', () => {
@@ -46,7 +45,7 @@ Building with Ninja...
     assert.equal(hook.captured(),
 `Configuring...
 Building with Ninja...
-No operations need to perform configuring.
+No operations need to perform for configuring.
 Building with Ninja...
 `);
   });
