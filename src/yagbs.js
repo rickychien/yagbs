@@ -84,5 +84,12 @@ export default function main(args = parser.parseArgs()) {
   return (hasNewerConfig(cachePath, mergedConfig) ?
     confidant({ dir: dir, exclude: exclude }) : Promise.resolve())
     .then(() => building(dir))
-    .then(() => caching(cachePath, JSON.stringify(mergedConfig, null, 2)));
+    .then(() => caching(cachePath, JSON.stringify(mergedConfig, null, 2)))
+    .catch(err => {
+      if (err.stdout) {
+        console.error(err.stdout);
+      } else {
+        console.error(err);
+      }
+    });
 }

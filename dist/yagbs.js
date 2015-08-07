@@ -103,6 +103,12 @@ function main() {
     return building(dir);
   }).then(function () {
     return caching(cachePath, JSON.stringify(mergedConfig, null, 2));
+  })['catch'](function (err) {
+    if (err.stdout) {
+      console.error(err.stdout);
+    } else {
+      console.error(err);
+    }
   });
 }
 
