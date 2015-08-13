@@ -1,6 +1,6 @@
 {
   "name": "yagbs",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "Ricky Chien <ricky060709@gmail.com>",
   "description": "Yet another gaia build system",
   "license": "MIT",
